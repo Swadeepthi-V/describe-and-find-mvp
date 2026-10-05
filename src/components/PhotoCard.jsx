@@ -195,6 +195,10 @@ const LOOK_CONFIG = {
 
 export default function PhotoCard({ photo, aiTag, showTags, isTarget }) {
   const [hovered, setHovered] = useState(false);
+  const [imgError, setImgError] = useState(false);
+  const padId = String(photo.id).padStart(2, '0');
+  const imgSrc = `/photo-cards/card-${padId}.svg`;
+
   const config = LOOK_CONFIG[photo.look] || {
     gradient: 'linear-gradient(135deg, #374151 0%, #6b7280 100%)',
     icon: null,
@@ -228,19 +232,43 @@ export default function PhotoCard({ photo, aiTag, showTags, isTarget }) {
         </div>
       )}
 
-      {/* Gradient tile */}
-      <div className="photo-tile" style={{ background: config.gradient }}>
-        <span className="photo-id-badge">#{photo.id}</span>
-        {config.icon}
-        {isTarget && (
-          <span style={{
-            position: 'absolute', bottom: 6, right: 6,
-            background: 'rgba(52,211,153,0.9)', borderRadius: '50%',
-            width: 20, height: 20, display: 'flex', alignItems: 'center',
-            justifyContent: 'center', fontSize: 12,
-          }}>✓</span>
-        )}
-      </div>
+      {/* Thumbnail tile */}
+      {!imgError ? (
+        <div className="photo-tile">
+          <img
+            src={imgSrc}
+            alt={photo.caption}
+            loading="lazy"
+            width="400"
+            height="280"
+            className="photo-thumbnail-img"
+            onError={() => setImgError(true)}
+          />
+          <span className="photo-id-badge">#{photo.id}</span>
+          {isTarget && (
+            <span style={{
+              position: 'absolute', bottom: 6, right: 6,
+              background: 'rgba(52,211,153,0.9)', borderRadius: '50%',
+              width: 20, height: 20, display: 'flex', alignItems: 'center',
+              justifyContent: 'center', fontSize: 12,
+            }}>✓</span>
+          )}
+        </div>
+      ) : (
+        /* Fallback gradient tile */
+        <div className="photo-tile" style={{ background: config.gradient }}>
+          <span className="photo-id-badge">#{photo.id}</span>
+          {config.icon}
+          {isTarget && (
+            <span style={{
+              position: 'absolute', bottom: 6, right: 6,
+              background: 'rgba(52,211,153,0.9)', borderRadius: '50%',
+              width: 20, height: 20, display: 'flex', alignItems: 'center',
+              justifyContent: 'center', fontSize: 12,
+            }}>✓</span>
+          )}
+        </div>
+      )}
 
       {/* Body */}
       <div className="photo-body">
