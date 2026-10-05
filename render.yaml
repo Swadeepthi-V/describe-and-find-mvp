@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: describe-and-find-mvp
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: node server/index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
+      - key: ADMIN_PASSWORD
+        sync: false
