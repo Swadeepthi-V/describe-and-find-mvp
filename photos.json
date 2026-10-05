@@ -1,0 +1,109 @@
+{
+  "_readme": "Synthetic demo library for Describe & Find. 'look', 'person', 'when' are ground-truth labels (use only to evaluate AI tagging); feed only 'caption' to the tagger. Scenarios: pink dress (ids 1-6, target 6), dressed up (7-13, targets 11-12), short hair (14-18, target 16).",
+  "vocab": {
+    "look": [
+      "pink dress",
+      "dressed up",
+      "short hair",
+      "blue jacket",
+      "birthday cake",
+      "beach sunset",
+      "wedding mandap",
+      "festive lights",
+      "office whiteboard",
+      "trekking backpack",
+      "puppy",
+      "rainy window",
+      "plate of biryani",
+      "cricket match",
+      "diwali diyas",
+      "graduation gown"
+    ],
+    "person": [
+      "Myself",
+      "Granddaughter — Priya",
+      "Sister — Meera",
+      "Mom",
+      "College friends",
+      "Office team",
+      "Cousin — Rohan",
+      "Neighbour's family"
+    ],
+    "when": [
+      "This month",
+      "3 months ago",
+      "6 months ago",
+      "Last Diwali",
+      "~1 year ago",
+      "Her engagement, Feb 2025",
+      "~2 years ago",
+      "College days, 2022",
+      "~3 years ago"
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "pink dress",
+      "literal_query": "pink dress",
+      "natural_query": "the photo of my granddaughter in a pink dress from last Diwali",
+      "target_ids": [6]
+    },
+    {
+      "name": "dressed up",
+      "literal_query": "dressed up",
+      "natural_query": "my sister dressed up for her engagement, that was back in February 2025",
+      "target_ids": [11, 12]
+    },
+    {
+      "name": "short hair",
+      "literal_query": "short hair",
+      "natural_query": "a photo of myself with short hair, from about a year ago, right after I got the haircut",
+      "target_ids": [16]
+    }
+  ],
+  "photos": [
+    { "id": 1, "look": "pink dress", "person": "Mom", "when": "~2 years ago", "caption": "Mom in a pink dress at a family lunch" },
+    { "id": 2, "look": "pink dress", "person": "College friends", "when": "College days, 2022", "caption": "Friend group, one of them in a bright pink dress" },
+    { "id": 3, "look": "pink dress", "person": "Myself", "when": "6 months ago", "caption": "Trying on a pink dress before a function" },
+    { "id": 4, "look": "pink dress", "person": "Neighbour's family", "when": "3 months ago", "caption": "Neighbour's daughter in a pink dress at their housewarming" },
+    { "id": 5, "look": "pink dress", "person": "Office team", "when": "3 months ago", "caption": "Office costume day, colleague in a pink dress" },
+    { "id": 6, "look": "pink dress", "person": "Granddaughter — Priya", "when": "Last Diwali", "caption": "Priya twirling in her new pink dress on Diwali night" },
+    { "id": 7, "look": "dressed up", "person": "Cousin — Rohan", "when": "~2 years ago", "caption": "Rohan dressed up for a friend's wedding" },
+    { "id": 8, "look": "dressed up", "person": "Myself", "when": "College days, 2022", "caption": "Dressed up in a graduation gown" },
+    { "id": 9, "look": "dressed up", "person": "Mom", "when": "Last Diwali", "caption": "Mom dressed up for Diwali puja" },
+    { "id": 10, "look": "dressed up", "person": "Office team", "when": "6 months ago", "caption": "The team dressed up for the annual party" },
+    { "id": 11, "look": "dressed up", "person": "Sister — Meera", "when": "Her engagement, Feb 2025", "caption": "Meera dressed up for her engagement function" },
+    { "id": 12, "look": "dressed up", "person": "Sister — Meera", "when": "Her engagement, Feb 2025", "caption": "Meera dressed up, close-up from the engagement stage" },
+    { "id": 13, "look": "dressed up", "person": "Neighbour's family", "when": "~1 year ago", "caption": "Neighbours dressed up for a wedding reception" },
+    { "id": 14, "look": "short hair", "person": "Myself", "when": "College days, 2022", "caption": "Short hair back in college" },
+    { "id": 15, "look": "short hair", "person": "Sister — Meera", "when": "~2 years ago", "caption": "Meera with short hair at a cousin's party" },
+    { "id": 16, "look": "short hair", "person": "Myself", "when": "~1 year ago", "caption": "First photo after the big haircut" },
+    { "id": 17, "look": "short hair", "person": "College friends", "when": "3 months ago", "caption": "A friend with newly short hair" },
+    { "id": 18, "look": "short hair", "person": "Cousin — Rohan", "when": "6 months ago", "caption": "Rohan's new short haircut" },
+    { "id": 19, "look": "blue jacket", "person": "Myself", "when": "This month", "caption": "Wearing the blue jacket on a cool evening" },
+    { "id": 20, "look": "birthday cake", "person": "Mom", "when": "3 months ago", "caption": "Cutting Mom's birthday cake" },
+    { "id": 21, "look": "beach sunset", "person": "College friends", "when": "~2 years ago", "caption": "Sunset on the beach trip with friends" },
+    { "id": 22, "look": "wedding mandap", "person": "Cousin — Rohan", "when": "~1 year ago", "caption": "Rohan at a friend's wedding mandap" },
+    { "id": 23, "look": "festive lights", "person": "Neighbour's family", "when": "Last Diwali", "caption": "Neighbours' house lit up for Diwali" },
+    { "id": 24, "look": "office whiteboard", "person": "Office team", "when": "This month", "caption": "Planning session on the office whiteboard" },
+    { "id": 25, "look": "trekking backpack", "person": "Myself", "when": "6 months ago", "caption": "Packed up for a weekend trek" },
+    { "id": 26, "look": "puppy", "person": "Sister — Meera", "when": "~3 years ago", "caption": "Meera with a friend's puppy" },
+    { "id": 27, "look": "rainy window", "person": "Myself", "when": "This month", "caption": "Watching the rain from the balcony" },
+    { "id": 28, "look": "plate of biryani", "person": "Mom", "when": "3 months ago", "caption": "Mom's Sunday biryani" },
+    { "id": 29, "look": "cricket match", "person": "College friends", "when": "~1 year ago", "caption": "Weekend cricket match with the old gang" },
+    { "id": 30, "look": "diwali diyas", "person": "Granddaughter — Priya", "when": "Last Diwali", "caption": "Priya lighting diyas on the steps" },
+    { "id": 31, "look": "blue jacket", "person": "Cousin — Rohan", "when": "~2 years ago", "caption": "Rohan in a blue jacket on a work trip" },
+    { "id": 32, "look": "birthday cake", "person": "Granddaughter — Priya", "when": "6 months ago", "caption": "Priya's birthday cake" },
+    { "id": 33, "look": "beach sunset", "person": "Myself", "when": "College days, 2022", "caption": "A sunset from the college beach trip" },
+    { "id": 34, "look": "wedding mandap", "person": "Neighbour's family", "when": "~2 years ago", "caption": "Neighbours at a wedding mandap" },
+    { "id": 35, "look": "festive lights", "person": "Office team", "when": "Last Diwali", "caption": "Office lobby decorated for Diwali" },
+    { "id": 36, "look": "office whiteboard", "person": "Myself", "when": "~1 year ago", "caption": "An old sprint-planning photo" },
+    { "id": 37, "look": "trekking backpack", "person": "College friends", "when": "~2 years ago", "caption": "Trek with college friends" },
+    { "id": 38, "look": "puppy", "person": "Myself", "when": "This month", "caption": "A puppy I met on a walk" },
+    { "id": 39, "look": "rainy window", "person": "Sister — Meera", "when": "3 months ago", "caption": "Meera by a rainy window" },
+    { "id": 40, "look": "plate of biryani", "person": "Office team", "when": "This month", "caption": "Office lunch biryani" },
+    { "id": 41, "look": "cricket match", "person": "Cousin — Rohan", "when": "6 months ago", "caption": "Rohan batting at the park" },
+    { "id": 42, "look": "diwali diyas", "person": "Mom", "when": "Last Diwali", "caption": "Mom arranging diyas on the window ledge" },
+    { "id": 43, "look": "graduation gown", "person": "Myself", "when": "College days, 2022", "caption": "Graduation day photo" }
+  ]
+}
