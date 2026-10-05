@@ -202,14 +202,12 @@ export default function PhotoCard({ photo, aiTag, showTags, isTarget }) {
 
   const hasMistag = aiTag && showTags && (
     aiTag.look !== photo.look ||
-    aiTag.person !== photo.person ||
-    aiTag.when !== photo.when
+    aiTag.person !== photo.person
   );
 
   const mistags = aiTag && showTags ? [
     aiTag.look !== photo.look && { field: 'look', ai: aiTag.look, truth: photo.look },
     aiTag.person !== photo.person && { field: 'person', ai: aiTag.person, truth: photo.person },
-    aiTag.when !== photo.when && { field: 'when', ai: aiTag.when, truth: photo.when },
   ].filter(Boolean) : [];
 
   return (
@@ -223,7 +221,7 @@ export default function PhotoCard({ photo, aiTag, showTags, isTarget }) {
         <div className="mistag-tooltip">
           {mistags.map((m) => (
             <div key={m.field} style={{ marginBottom: 4 }}>
-              <strong style={{ color: '#fb923c', textTransform: 'capitalize' }}>{m.field}:</strong>
+              <strong style={{ color: '#fb923c', textTransform: 'capitalize' }}>{m.field} (AI):</strong>
               {' '}AI: <em>{m.ai || '—'}</em> · Truth: <em style={{ color: '#34d399' }}>{m.truth}</em>
             </div>
           ))}
@@ -249,18 +247,24 @@ export default function PhotoCard({ photo, aiTag, showTags, isTarget }) {
         <p className="photo-caption">{photo.caption}</p>
         {showTags && aiTag && (
           <div className="photo-tags">
-            {[
-              { label: 'look', ai: aiTag.look, truth: photo.look },
-              { label: 'who', ai: aiTag.person, truth: photo.person },
-              { label: 'when', ai: aiTag.when, truth: photo.when },
-            ].map(({ label, ai, truth }) => (
-              <div key={label} className="tag-row">
-                <span className="tag-label">{label}</span>
-                <span className={`tag-value ${ai === truth ? 'correct' : 'wrong'}`}>
-                  {ai || '—'} {ai === truth ? '✓' : '✗'}
-                </span>
-              </div>
-            ))}
+            <div className="tag-row">
+              <span className="tag-label">look</span>
+              <span className={`tag-value ${aiTag.look === photo.look ? 'correct' : 'wrong'}`}>
+                {aiTag.look || '—'} {aiTag.look === photo.look ? '✓' : '✗'}
+              </span>
+            </div>
+            <div className="tag-row">
+              <span className="tag-label">who</span>
+              <span className={`tag-value ${aiTag.person === photo.person ? 'correct' : 'wrong'}`}>
+                {aiTag.person || '—'} {aiTag.person === photo.person ? '✓' : '✗'}
+              </span>
+            </div>
+            <div className="tag-row">
+              <span className="tag-label">when</span>
+              <span className="tag-value correct" style={{ color: '#a5b4fc' }}>
+                {aiTag.when || photo.when} <span style={{ fontSize: 10, opacity: 0.8 }}>(EXIF)</span>
+              </span>
+            </div>
           </div>
         )}
       </div>

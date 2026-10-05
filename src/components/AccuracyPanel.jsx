@@ -26,19 +26,37 @@ export default function AccuracyPanel({ accuracy }) {
       </h3>
 
       <div className="accuracy-grid">
-        {[
-          { label: 'All 3 Correct', stat: all, icon: '🎯' },
-          { label: 'Look', stat: look, icon: '👀' },
-          { label: 'Person', stat: person, icon: '👤' },
-          { label: 'When', stat: when, icon: '🕐' },
-        ].map(({ label, stat, icon }) => (
-          <div key={label} className="accuracy-card">
-            <div className="big-num" style={{ fontSize: 22, marginBottom: 2 }}>{icon}</div>
-            <div className={`big-num ${pctClass(stat.pct)}`}>{stat.pct}%</div>
-            <div className="acc-label">{label}</div>
-            <div className="acc-sub">{stat.correct}/{stat.total} photos</div>
+        <div className="accuracy-card">
+          <div className="big-num" style={{ fontSize: 22, marginBottom: 2 }}>🎯</div>
+          <div className={`big-num ${pctClass(all?.pct)}`}>{all?.pct}%</div>
+          <div className="acc-label">All Correct (Look + Person)</div>
+          <div className="acc-sub">{all?.correct}/{all?.total} photos</div>
+        </div>
+
+        <div className="accuracy-card">
+          <div className="big-num" style={{ fontSize: 22, marginBottom: 2 }}>👀</div>
+          <div className={`big-num ${pctClass(look?.pct)}`}>{look?.pct}%</div>
+          <div className="acc-label">Look (AI)</div>
+          <div className="acc-sub">{look?.correct}/{look?.total} photos</div>
+        </div>
+
+        <div className="accuracy-card">
+          <div className="big-num" style={{ fontSize: 22, marginBottom: 2 }}>👤</div>
+          <div className={`big-num ${pctClass(person?.pct)}`}>{person?.pct}%</div>
+          <div className="acc-label">Person (AI)</div>
+          <div className="acc-sub">{person?.correct}/{person?.total} photos</div>
+        </div>
+
+        <div className="accuracy-card" style={{ borderColor: 'rgba(99,102,241,0.3)', background: 'rgba(99,102,241,0.06)' }}>
+          <div className="big-num" style={{ fontSize: 22, marginBottom: 2 }}>📅</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--primary-hover)', margin: '8px 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Metadata (EXIF)
           </div>
-        ))}
+          <div className="acc-label" style={{ fontSize: 12, lineHeight: 1.35, color: 'var(--text-muted)' }}>
+            Read from capture-date metadata — not AI-inferred
+          </div>
+          <div className="acc-sub" style={{ marginTop: 4 }}>43/43 timestamped</div>
+        </div>
       </div>
 
       <table className="accuracy-table">
@@ -52,26 +70,40 @@ export default function AccuracyPanel({ accuracy }) {
           </tr>
         </thead>
         <tbody>
-          {[
-            { field: 'Look', stat: look, note: 'Visual appearance / setting' },
-            { field: 'Person', stat: person, note: 'Who is in the photo' },
-            { field: 'When', stat: when, note: 'Time context' },
-            { field: 'All three', stat: all, note: 'Exact match — search will succeed' },
-          ].map(({ field, stat, note }) => (
-            <tr key={field}>
-              <td style={{ fontWeight: 600 }}>{field}</td>
-              <td>{stat.correct}</td>
-              <td>{stat.total}</td>
-              <td><PillPct pct={stat.pct} /></td>
-              <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{note}</td>
-            </tr>
-          ))}
+          <tr>
+            <td style={{ fontWeight: 600 }}>Look (AI)</td>
+            <td>{look?.correct}</td>
+            <td>{look?.total}</td>
+            <td><PillPct pct={look?.pct} /></td>
+            <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>Visual appearance / setting (AI-inferred from caption)</td>
+          </tr>
+          <tr>
+            <td style={{ fontWeight: 600 }}>Person (AI)</td>
+            <td>{person?.correct}</td>
+            <td>{person?.total}</td>
+            <td><PillPct pct={person?.pct} /></td>
+            <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>Who is in the photo (AI-inferred from caption)</td>
+          </tr>
+          <tr style={{ background: 'rgba(99,102,241,0.04)' }}>
+            <td style={{ fontWeight: 600 }}>When</td>
+            <td>—</td>
+            <td>—</td>
+            <td><span className="pill" style={{ background: 'rgba(99,102,241,0.2)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.3)' }}>EXIF</span></td>
+            <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>Read from capture-date metadata — not AI-inferred</td>
+          </tr>
+          <tr>
+            <td style={{ fontWeight: 600 }}>All Correct (Look + Person)</td>
+            <td>{all?.correct}</td>
+            <td>{all?.total}</td>
+            <td><PillPct pct={all?.pct} /></td>
+            <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>Both AI-inferred cues match ground truth exactly</td>
+          </tr>
         </tbody>
       </table>
 
       <p style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 12 }}>
-        ⚠️ Photos with an orange dashed border were mistagged — hover/tap to see what the AI got wrong and why the target might be missed.
-        This honesty is a feature: it shows where the AI workflow could improve.
+        ⚠️ Photos with an orange dashed border were mistagged on Look or Person — hover/tap to see what the AI got wrong and why the target might be missed.
+        This honesty is a feature: it demonstrates where the AI workflow performs well and where ambiguous clues pose challenges.
       </p>
     </div>
   );

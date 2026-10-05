@@ -7,25 +7,29 @@ const { vocab } = photos;
 const VALID = {
   look: new Set(vocab.look),
   person: new Set(vocab.person),
-  when: new Set(vocab.when),
 };
+
+const photoMap = new Map(photos.photos.map((p) => [p.id, p]));
 
 let cache = null; // { tags, accuracy, timestamp }
 
 function validate(tags) {
-  return tags.map((t) => ({
-    id: t.id,
-    look: VALID.look.has(t.look) ? t.look : null,
-    person: VALID.person.has(t.person) ? t.person : null,
-    when: VALID.when.has(t.when) ? t.when : null,
-  }));
+  return tags.map((t) => {
+    const photo = photoMap.get(t.id);
+    return {
+      id: t.id,
+      look: VALID.look.has(t.look) ? t.look : null,
+      person: VALID.person.has(t.person) ? t.person : null,
+      when: photo ? photo.when : null, // Read straight from capture-date metadata (EXIF)
+    };
+  });
 }
 
 function computeAccuracy(aiTags) {
   const truth = {};
   for (const p of photos.photos) truth[p.id] = { look: p.look, person: p.person, when: p.when };
 
-  let lookC = 0, personC = 0, whenC = 0, allC = 0;
+  let lookC = 0, personC = 0, allC = 0;
   const total = photos.photos.length;
 
   for (const t of aiTags) {
@@ -33,17 +37,15 @@ function computeAccuracy(aiTags) {
     if (!gt) continue;
     const lOk = t.look === gt.look;
     const pOk = t.person === gt.person;
-    const wOk = t.when === gt.when;
     if (lOk) lookC++;
     if (pOk) personC++;
-    if (wOk) whenC++;
-    if (lOk && pOk && wOk) allC++;
+    if (lOk && pOk) allC++;
   }
 
   return {
     look: { correct: lookC, total, pct: ((lookC / total) * 100).toFixed(1) },
     person: { correct: personC, total, pct: ((personC / total) * 100).toFixed(1) },
-    when: { correct: whenC, total, pct: ((whenC / total) * 100).toFixed(1) },
+    when: { isMetadata: true, note: 'Read from capture-date metadata — not AI-inferred' },
     all: { correct: allC, total, pct: ((allC / total) * 100).toFixed(1) },
   };
 }
@@ -60,13 +62,15 @@ async function callGroq(client) {
   const systemPrompt = `You are an AI photo tagger. Respond strictly with JSON.
 
 Controlled Vocabularies:
-- look: ${JSON.stringify(vocab.look)}
-- person: ${JSON.stringify(vocab.person)}
-- when: ${JSON.stringify(vocab.when)}
+- look (choose exactly one): ${JSON.stringify(vocab.look)}
+- person (choose exactly one): ${JSON.stringify(vocab.person)}
 
-Instruction:
-Classify each photo from the user's list. Choose exactly one value per category from the vocabulary above.
-Return JSON in format: {"tags": [{"id": 1, "look": "...", "person": "...", "when": "..."}]}`;
+Rules:
+- You MUST choose values only from the lists above. Never invent new values.
+- Base your classification only on the caption text provided.
+- If unsure, pick the closest match.
+- Output ONLY valid JSON in this exact shape: {"tags": [{"id": number, "look": string, "person": string}, ...]}
+- Include all 43 photos in the output array.`;
 
   const captions = photos.photos.map((p) => `id ${p.id}: ${p.caption}`).join('\n');
 
@@ -74,7 +78,7 @@ Return JSON in format: {"tags": [{"id": 1, "look": "...", "person": "...", "when
     model: process.env.GROQ_MODEL || 'qwen/qwen3.8-27b',
     messages: [
       { role: 'system', content: systemPrompt },
-      { role: 'user', content: `Please return JSON for these 43 photos:\n${captions}` },
+      { role: 'user', content: `Please return JSON tags for these 43 photos:\n${captions}` },
     ],
     response_format: { type: 'json_object' },
     temperature: 0.1,

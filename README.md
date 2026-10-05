@@ -9,20 +9,21 @@ The app runs a 3-stage workflow on a synthetic 43-photo library:
 | Stage | Description |
 |---|---|
 | **1 — Raw Library** | Shows 43 photos with only caption and ID — as Google Photos sees them today |
-| **2 — AI Auto-Tagging** | Sends all 43 captions to Groq in a single call; the model assigns `look`, `person`, and `when` tags from controlled vocabulary. Accuracy is scored against ground truth. |
+| **2 — AI Auto-Tagging** | Sends all 43 captions to Groq in a single call; the model assigns `look` and `person` tags from controlled vocabulary. Time context (`when`) comes from capture-date metadata (EXIF). Accuracy of AI tags is scored against ground truth. |
 | **3 — Guided Search** | Side-by-side comparison of keyword search (today) vs. 3-dropdown guided search (Describe & Find). Three preset scenarios show whether the target photo was found. |
 
 ## Real vs. Simulated
 
 | What | Real or Simulated |
 |---|---|
-| Groq LLM tagging from captions | **REAL** |
+| Groq LLM tagging of `look` and `person` from captions | **REAL** |
 | Validation against controlled vocab | **REAL** |
 | Accuracy scoring vs. ground truth | **REAL** |
-| Combined multi-cue search | **REAL** |
+| Combined multi-cue search (look + person + when) | **REAL** |
 | Search + feedback logging | **REAL** |
 | 43-photo library and captions | **SIMULATED** (synthetic data; captions stand in for what a vision model + face-grouping would produce in production) |
 | Photo thumbnails | **SIMULATED** (gradient + SVG icon tiles keyed to look value; no real photos) |
+| Capture-date metadata | **SIMULATED** (simulated from the dataset to represent EXIF capture dates in Google Photos) |
 
 ## How to Run Locally
 

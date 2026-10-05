@@ -80,14 +80,14 @@ export default function Stage2Tagging({ tagsResult, setTagsResult }) {
         <div className="section-title">AI Auto-Tagging</div>
         <div className="section-subtitle">
           The backend sends all 43 captions to Groq in a single call.
-          The model classifies each photo using controlled vocabulary. Results are cached until you re-run.
+          The model classifies look and person using controlled vocabulary; time context is read directly from capture-date metadata (EXIF). Results are cached until you re-run.
         </div>
       </div>
 
       <div className="insight-box">
         <strong>How it works:</strong> The tagger receives <em>only the caption</em> — never the ground-truth labels.
-        It must pick values from controlled vocab lists for look, person, and when.
-        We then compare its output to the ground truth to compute accuracy.
+        It picks values from controlled vocab lists for <strong>look</strong> and <strong>person</strong>. Time (when) comes straight from photo capture-date metadata, as in Google Photos today.
+        We then compare AI-inferred outputs to ground truth to compute accuracy.
       </div>
 
       {/* Controls */}
