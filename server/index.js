@@ -4,6 +4,7 @@ import express from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import 'dotenv/config';
 
@@ -109,8 +110,8 @@ app.get('/api/admin/logs', basicAuth, (req, res) => {
 });
 
 // ── Serve React build in production ─────────────────────────────────────────
-if (process.env.NODE_ENV === 'production') {
-  const dist = path.join(__dirname, '..', 'dist');
+const dist = path.join(__dirname, '..', 'dist');
+if (fs.existsSync(dist)) {
   app.use(express.static(dist));
   // /admin route handled by React Router; all other non-api routes → index.html
   app.get(/^(?!\/api).*/, (req, res) => {
