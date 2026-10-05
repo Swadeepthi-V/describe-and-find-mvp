@@ -57,29 +57,27 @@ export function clearCache() {
 }
 
 async function callGroq(client) {
-  const systemPrompt = `You are a photo tagger. Given a list of photo captions, classify each photo using ONLY the values from these controlled vocabularies:
+  const systemPrompt = `You are an AI photo tagger. Respond strictly with JSON.
 
-look values (choose exactly one): ${JSON.stringify(vocab.look)}
-person values (choose exactly one): ${JSON.stringify(vocab.person)}
-when values (choose exactly one): ${JSON.stringify(vocab.when)}
+Controlled Vocabularies:
+- look: ${JSON.stringify(vocab.look)}
+- person: ${JSON.stringify(vocab.person)}
+- when: ${JSON.stringify(vocab.when)}
 
-Rules:
-- You MUST choose values only from the lists above. Never invent new values.
-- Base your classification only on the caption text provided.
-- If unsure, pick the closest match.
-- Output ONLY valid JSON in this exact shape: {"tags": [{"id": number, "look": string, "person": string, "when": string}, ...]}
-- Include all 43 photos in the output array.`;
+Instruction:
+Classify each photo from the user's list. Choose exactly one value per category from the vocabulary above.
+Return JSON in format: {"tags": [{"id": 1, "look": "...", "person": "...", "when": "..."}]}`;
 
   const captions = photos.photos.map((p) => `id ${p.id}: ${p.caption}`).join('\n');
 
   const response = await client.chat.completions.create({
-    model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+    model: process.env.GROQ_MODEL || 'qwen/qwen3.8-27b',
     messages: [
       { role: 'system', content: systemPrompt },
-      { role: 'user', content: `Tag these 43 photos:\n${captions}` },
+      { role: 'user', content: `Please return JSON for these 43 photos:\n${captions}` },
     ],
     response_format: { type: 'json_object' },
-    temperature: 0,
+    temperature: 0.1,
   });
 
   return response.choices[0].message.content;

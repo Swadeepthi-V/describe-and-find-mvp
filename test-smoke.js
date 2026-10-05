@@ -1,6 +1,4 @@
-// Quick smoke test — run with: node test-smoke.js
-// Requires server running on localhost:3001
-
+import 'dotenv/config';
 const BASE = process.env.BASE || 'http://localhost:3001';
 
 async function test(name, fn) {
