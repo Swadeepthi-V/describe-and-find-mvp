@@ -78,7 +78,49 @@ app.post('/api/log', (req, res) => {
 
 app.post('/api/feedback', (req, res) => {
   try {
-    appendLog({ ...req.body, mode: 'feedback' });
+    let { foundPhoto, easeRating, comment, context, sessionId, timestamp, found, ease } = req.body || {};
+
+    // Normalize legacy field names if provided
+    if (foundPhoto === undefined && found !== undefined) {
+      if (found === true || found === 'Yes') foundPhoto = 'Yes';
+      else if (found === false || found === 'No') foundPhoto = 'No';
+    }
+    if (easeRating === undefined && ease !== undefined) {
+      easeRating = ease;
+    }
+
+    // Validate foundPhoto: must be in { 'Yes', 'No' }
+    if (foundPhoto !== 'Yes' && foundPhoto !== 'No') {
+      return res.status(400).json({
+        error: 'invalid_foundPhoto',
+        message: 'foundPhoto must be "Yes" or "No"',
+      });
+    }
+
+    // Validate easeRating: integer 1-5
+    const easeNum = Number(easeRating);
+    if (!Number.isInteger(easeNum) || easeNum < 1 || easeNum > 5) {
+      return res.status(400).json({
+        error: 'invalid_easeRating',
+        message: 'easeRating must be an integer between 1 and 5',
+      });
+    }
+
+    // Trim comment and cap at 500 characters
+    const trimmedComment = typeof comment === 'string' ? comment.trim().slice(0, 500) : '';
+
+    appendLog({
+      mode: 'feedback',
+      sessionId: sessionId || null,
+      foundPhoto,
+      easeRating: easeNum,
+      comment: trimmedComment,
+      context: context || null,
+      timestamp: timestamp || new Date().toISOString(),
+      found: foundPhoto === 'Yes',
+      ease: easeNum,
+    });
+
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

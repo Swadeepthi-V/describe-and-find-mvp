@@ -85,7 +85,7 @@ export default function AdminPage() {
   }
 
   const { logs, aggregates } = data;
-  const { totalLogs, totalSessions, sessions, scenarioTargetFoundRate } = aggregates;
+  const { totalLogs, totalSessions, sessions, scenarioTargetFoundRate, feedbackStats } = aggregates;
 
   function downloadBlob(content, filename, mimeType) {
     const blob = new Blob([content], { type: mimeType });
@@ -109,11 +109,11 @@ export default function AdminPage() {
   }
 
   function exportCSV() {
-    if (!logs || logs.length === 0) return;
-    const headers = ['sessionId', 'timestamp', 'mode', 'query/fields', 'resultCount', 'targetFound', 'feedback answers'];
+    const rows = logs || [];
+    const headers = ['sessionId', 'timestamp', 'mode', 'query/fields', 'resultCount', 'targetFound', 'feedback answers', 'comment'];
     const csvRows = [headers.map(escapeCSV).join(',')];
 
-    for (const row of logs) {
+    for (const row of rows) {
       let queryFields = '';
       if (row.guidedFields) {
         queryFields = row.keyword ? `keyword: "${row.keyword}", fields: ${JSON.stringify(row.guidedFields)}` : JSON.stringify(row.guidedFields);
@@ -142,11 +142,15 @@ export default function AdminPage() {
       }
 
       let feedbackAnswers = '';
-      if (row.found !== undefined || row.ease !== undefined) {
-        feedbackAnswers = `found: ${row.found ?? '—'}, ease: ${row.ease ?? '—'}`;
+      const foundAns = row.foundPhoto || (row.found === true ? 'Yes' : row.found === false ? 'No' : '');
+      const easeAns = row.easeRating ?? row.ease ?? '';
+      if (foundAns || easeAns) {
+        feedbackAnswers = `foundPhoto: ${foundAns || '—'}, easeRating: ${easeAns || '—'}`;
       } else if (row.feedback !== undefined) {
         feedbackAnswers = typeof row.feedback === 'object' ? JSON.stringify(row.feedback) : String(row.feedback);
       }
+
+      const commentVal = row.comment ? String(row.comment) : '';
 
       const values = [
         row.sessionId ?? '',
@@ -156,6 +160,7 @@ export default function AdminPage() {
         resultCount,
         targetFound,
         feedbackAnswers,
+        commentVal,
       ];
 
       csvRows.push(values.map(escapeCSV).join(','));
@@ -166,10 +171,15 @@ export default function AdminPage() {
   }
 
   function downloadJSON() {
-    if (!logs || logs.length === 0) return;
-    const jsonContent = JSON.stringify(logs, null, 2);
+    const rows = logs || [];
+    const normalized = rows.map((r) => ({ ...r, comment: r.comment || '' }));
+    const jsonContent = JSON.stringify(normalized, null, 2);
     downloadBlob(jsonContent, `describe_and_find_logs_${new Date().toISOString().slice(0, 10)}.json`, 'application/json');
   }
+
+  const feedbackLogs = (logs || []).filter(
+    (l) => l.mode === 'feedback' || l.foundPhoto !== undefined || l.easeRating !== undefined || l.found !== undefined || l.ease !== undefined
+  );
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', padding: '32px 16px' }}>
@@ -177,11 +187,11 @@ export default function AdminPage() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
           <h2>📊 Admin Dashboard</h2>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <button id="export-csv-btn" className="btn btn-secondary btn-sm" onClick={exportCSV} disabled={!logs || logs.length === 0}>
-              📥 Export CSV
+            <button id="export-csv-btn" className="btn btn-secondary btn-sm" onClick={exportCSV}>
+              Export CSV
             </button>
-            <button id="download-json-btn" className="btn btn-secondary btn-sm" onClick={downloadJSON} disabled={!logs || logs.length === 0}>
-              📥 Download JSON
+            <button id="download-json-btn" className="btn btn-secondary btn-sm" onClick={downloadJSON}>
+              Download JSON
             </button>
             <button className="btn btn-ghost btn-sm" onClick={refresh} disabled={loading}>
               {loading ? 'Loading…' : '↻ Refresh'}
@@ -210,6 +220,57 @@ export default function AdminPage() {
             <div className="big" style={{ color: 'var(--accent2)' }}>{scenarioTargetFoundRate.guided != null ? scenarioTargetFoundRate.guided + '%' : '—'}</div>
             <div className="lbl">Scenarios: target found (Guided)</div>
           </div>
+          <div className="agg-card">
+            <div className="big" style={{ color: '#fbbf24' }}>{feedbackStats?.avgEase != null ? `${feedbackStats.avgEase} ★` : '—'}</div>
+            <div className="lbl">Average ease rating</div>
+          </div>
+          <div className="agg-card">
+            <div className="big" style={{ color: 'var(--success)' }}>{feedbackStats?.foundPhotoYesPct != null ? `${feedbackStats.foundPhotoYesPct}%` : '—'}</div>
+            <div className="lbl">% Yes for foundPhoto</div>
+          </div>
+        </div>
+
+        {/* Feedback Responses table */}
+        <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 12, color: 'var(--text-muted)' }}>
+          Feedback Responses ({feedbackLogs.length})
+        </h3>
+        <div style={{ overflowX: 'auto', marginBottom: 28 }}>
+          <table className="log-table">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Session</th>
+                <th>Found Photo</th>
+                <th>Ease Rating</th>
+                <th>Comment</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...feedbackLogs].reverse().map((row, i) => {
+                const foundText = row.foundPhoto || (row.found === true ? 'Yes' : row.found === false ? 'No' : '—');
+                const easeVal = row.easeRating ?? row.ease;
+                const commentText = row.comment ? String(row.comment) : '';
+                return (
+                  <tr key={i}>
+                    <td style={{ whiteSpace: 'nowrap', fontSize: 12 }}>{new Date(row.timestamp).toLocaleString()}</td>
+                    <td style={{ fontFamily: 'monospace', fontSize: 11 }}>{(row.sessionId || '—').slice(0, 12)}</td>
+                    <td>
+                      <span className={`pill ${foundText === 'Yes' ? 'pill-success' : foundText === 'No' ? 'pill-danger' : ''}`} style={{ fontSize: 11 }}>
+                        {foundText}
+                      </span>
+                    </td>
+                    <td style={{ fontSize: 12 }}>{easeVal ? `${easeVal} ★` : '—'}</td>
+                    <td style={{ fontSize: 12, maxWidth: 350, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                      {commentText || <span style={{ color: 'var(--text-dim)' }}>—</span>}
+                    </td>
+                  </tr>
+                );
+              })}
+              {feedbackLogs.length === 0 && (
+                <tr><td colSpan={5} style={{ color: 'var(--text-dim)', textAlign: 'center' }}>No feedback submitted yet</td></tr>
+              )}
+            </tbody>
+          </table>
         </div>
 
         {/* Sessions table */}

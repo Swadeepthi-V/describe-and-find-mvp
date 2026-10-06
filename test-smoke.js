@@ -38,11 +38,42 @@ async function run() {
     const r = await fetch(`${BASE}/api/feedback`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ found: true, ease: 5, sessionId: 'test-session' }),
+      body: JSON.stringify({ foundPhoto: 'Yes', easeRating: 5, sessionId: 'test-session' }),
     });
     const d = await r.json();
     if (!r.ok) throw new Error(`Status ${r.status}`);
     return `ok=${d.ok}`;
+  });
+
+  // 4. /api/feedback with comment & read back
+  await test('/api/feedback with comment & read back', async () => {
+    const pw = process.env.ADMIN_PASSWORD || 'admin';
+    const testSession = `smoke-comment-${Date.now()}`;
+    const testComment = 'Great search experience, found my photo quickly!';
+    const postRes = await fetch(`${BASE}/api/feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId: testSession,
+        foundPhoto: 'Yes',
+        easeRating: 4,
+        comment: testComment,
+      }),
+    });
+    if (!postRes.ok) throw new Error(`POST /api/feedback failed: ${postRes.status}`);
+
+    const creds = Buffer.from(`admin:${pw}`).toString('base64');
+    const logsRes = await fetch(`${BASE}/api/admin/logs`, {
+      headers: { Authorization: `Basic ${creds}` },
+    });
+    if (!logsRes.ok) throw new Error(`GET /api/admin/logs failed: ${logsRes.status}`);
+    const data = await logsRes.json();
+    const row = data.logs.find((l) => l.sessionId === testSession);
+    if (!row) throw new Error('Feedback row not found in logs');
+    if (row.comment !== testComment) throw new Error(`Comment mismatch: expected "${testComment}", got "${row.comment}"`);
+    if (row.foundPhoto !== 'Yes') throw new Error(`foundPhoto mismatch: expected "Yes", got "${row.foundPhoto}"`);
+    if (row.easeRating !== 4) throw new Error(`easeRating mismatch: expected 4, got "${row.easeRating}"`);
+    return `comment="${row.comment}", foundPhoto=${row.foundPhoto}, easeRating=${row.easeRating}`;
   });
 
   // 4. /api/admin/logs requires auth

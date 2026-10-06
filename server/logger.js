@@ -29,6 +29,11 @@ export function readAllLogs() {
 
 export function computeAggregates(logs) {
   const sessions = {};
+  let feedbackEaseSum = 0;
+  let feedbackEaseCount = 0;
+  let feedbackFoundYesCount = 0;
+  let feedbackFoundTotal = 0;
+
   for (const row of logs) {
     const sid = row.sessionId || 'unknown';
     if (!sessions[sid]) sessions[sid] = { searches: 0, scenarios: 0, targetsFoundToday: 0, targetsFoundGuided: 0 };
@@ -37,6 +42,20 @@ export function computeAggregates(logs) {
       sessions[sid].scenarios++;
       if (row.targetFound?.today) sessions[sid].targetsFoundToday++;
       if (row.targetFound?.guided) sessions[sid].targetsFoundGuided++;
+    }
+
+    if (row.mode === 'feedback' || row.easeRating !== undefined || row.foundPhoto !== undefined || row.found !== undefined || row.ease !== undefined) {
+      const ease = row.easeRating ?? row.ease;
+      if (typeof ease === 'number' && !isNaN(ease) && ease >= 1 && ease <= 5) {
+        feedbackEaseSum += ease;
+        feedbackEaseCount++;
+      }
+      const isYes = row.foundPhoto === 'Yes' || row.found === true;
+      const isNo = row.foundPhoto === 'No' || row.found === false;
+      if (isYes || isNo) {
+        feedbackFoundTotal++;
+        if (isYes) feedbackFoundYesCount++;
+      }
     }
   }
 
@@ -52,6 +71,11 @@ export function computeAggregates(logs) {
     scenarioTargetFoundRate: {
       today: totalScenarios ? ((totalFoundToday / totalScenarios) * 100).toFixed(1) : null,
       guided: totalScenarios ? ((totalFoundGuided / totalScenarios) * 100).toFixed(1) : null,
+    },
+    feedbackStats: {
+      avgEase: feedbackEaseCount ? (feedbackEaseSum / feedbackEaseCount).toFixed(1) : null,
+      foundPhotoYesPct: feedbackFoundTotal ? ((feedbackFoundYesCount / feedbackFoundTotal) * 100).toFixed(1) : null,
+      totalFeedback: feedbackEaseCount || feedbackFoundTotal,
     },
   };
 }
