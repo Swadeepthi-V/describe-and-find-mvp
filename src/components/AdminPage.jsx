@@ -87,12 +87,102 @@ export default function AdminPage() {
   const { logs, aggregates } = data;
   const { totalLogs, totalSessions, sessions, scenarioTargetFoundRate } = aggregates;
 
+  function downloadBlob(content, filename, mimeType) {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function escapeCSV(val) {
+    if (val === null || val === undefined) return '';
+    const str = typeof val === 'object' ? JSON.stringify(val) : String(val);
+    if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+  }
+
+  function exportCSV() {
+    if (!logs || logs.length === 0) return;
+    const headers = ['sessionId', 'timestamp', 'mode', 'query/fields', 'resultCount', 'targetFound', 'feedback answers'];
+    const csvRows = [headers.map(escapeCSV).join(',')];
+
+    for (const row of logs) {
+      let queryFields = '';
+      if (row.guidedFields) {
+        queryFields = row.keyword ? `keyword: "${row.keyword}", fields: ${JSON.stringify(row.guidedFields)}` : JSON.stringify(row.guidedFields);
+      } else if (row.keyword) {
+        queryFields = row.keyword;
+      } else if (row.context) {
+        queryFields = typeof row.context === 'object' ? JSON.stringify(row.context) : String(row.context);
+      } else if (row.query) {
+        queryFields = typeof row.query === 'object' ? JSON.stringify(row.query) : String(row.query);
+      } else if (row.mode === 'tagging' && row.accuracy) {
+        queryFields = `accuracy: ${JSON.stringify(row.accuracy)}`;
+      }
+
+      let resultCount = '';
+      if (row.resultCount !== undefined) {
+        resultCount = row.resultCount;
+      } else if (row.todayCount !== undefined || row.guidedCount !== undefined) {
+        resultCount = `today: ${row.todayCount ?? '—'}, guided: ${row.guidedCount ?? '—'}`;
+      }
+
+      let targetFound = '';
+      if (row.targetFound !== undefined) {
+        targetFound = typeof row.targetFound === 'object'
+          ? `today: ${row.targetFound.today ?? '—'}, guided: ${row.targetFound.guided ?? '—'}`
+          : String(row.targetFound);
+      }
+
+      let feedbackAnswers = '';
+      if (row.found !== undefined || row.ease !== undefined) {
+        feedbackAnswers = `found: ${row.found ?? '—'}, ease: ${row.ease ?? '—'}`;
+      } else if (row.feedback !== undefined) {
+        feedbackAnswers = typeof row.feedback === 'object' ? JSON.stringify(row.feedback) : String(row.feedback);
+      }
+
+      const values = [
+        row.sessionId ?? '',
+        row.timestamp ?? '',
+        row.mode ?? '',
+        queryFields,
+        resultCount,
+        targetFound,
+        feedbackAnswers,
+      ];
+
+      csvRows.push(values.map(escapeCSV).join(','));
+    }
+
+    const csvContent = '\uFEFF' + csvRows.join('\r\n');
+    downloadBlob(csvContent, `describe_and_find_logs_${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8;');
+  }
+
+  function downloadJSON() {
+    if (!logs || logs.length === 0) return;
+    const jsonContent = JSON.stringify(logs, null, 2);
+    downloadBlob(jsonContent, `describe_and_find_logs_${new Date().toISOString().slice(0, 10)}.json`, 'application/json');
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', padding: '32px 16px' }}>
       <div className="admin-page">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
           <h2>📊 Admin Dashboard</h2>
-          <div style={{ display: 'flex', gap: 10 }}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <button id="export-csv-btn" className="btn btn-secondary btn-sm" onClick={exportCSV} disabled={!logs || logs.length === 0}>
+              📥 Export CSV
+            </button>
+            <button id="download-json-btn" className="btn btn-secondary btn-sm" onClick={downloadJSON} disabled={!logs || logs.length === 0}>
+              📥 Download JSON
+            </button>
             <button className="btn btn-ghost btn-sm" onClick={refresh} disabled={loading}>
               {loading ? 'Loading…' : '↻ Refresh'}
             </button>
